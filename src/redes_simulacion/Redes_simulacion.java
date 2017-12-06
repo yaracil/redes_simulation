@@ -27,13 +27,13 @@ public class Redes_simulacion {
         // TODO code application logic here
 
 //        try {
-        int n = 1000; //número de paquetes
+        int n = 2000; //número de paquetes
         int nbuffer = 5; //tamaño del buffer
         float Miu = 20; //tasa de servicio
-        float tau = 10; //tiempos de llegadas entre paquetes
+        float lambda = 30; //tiempos de llegadas entre paquetes
         float time_tx_pkt = 1 / Miu; //tiempo de tx de cada paquete
         int count_pkt_perdidos = 0; //total de paqutes perdidos
-        int count_buffer_vacio = 1; //contador de paquetes que encuentran el buffer vacio (se inicia contando el primer paquete)
+        float rho = lambda / Miu;
 
         int C_n[] = new int[nbuffer + 1];    // conteo de ocupacion de posicion n en el buffer
         float[] taus = new float[n];
@@ -44,7 +44,7 @@ public class Redes_simulacion {
         Random ran = new Random();
 //            BufferedWriter bf = new BufferedWriter(txt);
         for (int i = 0; i < n - 1; i++) {
-            taus[i] = (float) (-(1 / tau) * log(1 - ran.nextFloat()));
+            taus[i] = (float) (-(1 / lambda) * log(1 - ran.nextFloat()));
             //tiempo de llegada de un paquete respecto del anterior
 //                bf.write((-(1 / tau) * log(1 - ran.nextInt(2000) / 2000)) + "\n");
             //calculando tiempo de llegada y escribiendo            
@@ -67,6 +67,7 @@ public class Redes_simulacion {
         linea_tiempo_tx[0] = linea_tiempo_llegada[0] + time_tx_pkt;
         System.out.println("NO HAY PAQUETES EN EL BUFFER...SE TRANSMITE");
         System.out.println("BUFFER--->" + buffer);
+        C_n[pbuffer] += 1;
 
         for (int i = 1; i < n || !buffer.isEmpty(); i++) {
             if (i < n) {
@@ -79,7 +80,7 @@ public class Redes_simulacion {
                     System.out.println("SE TRASMITE PAQUETE " + (buffer.get(j)) + " TIEMPO -> " + linea_tiempo_tx[buffer.get(j) - 1]);
                     buffer.remove(j);
                     pbuffer--;
-                    C_n[pbuffer]++;
+                    //C_n[pbuffer]++;
                     System.out.println("BUFFER--->" + buffer);
                     j--;
                 } else {
@@ -105,46 +106,66 @@ public class Redes_simulacion {
                     //no hay paquete en buffer se tx
                     linea_tiempo_tx[i] = tiempo_ultimo_pkt + time_tx_pkt;
                     System.out.println("NO HAY PAQUETES EN EL BUFFER...SE TRANSMITE");
-                    count_buffer_vacio++;
+                    C_n[pbuffer] += 1;
                 }
                 System.out.println("BUFFER--->" + buffer);
             }
         }
-        float sum_aux = 0;
-        System.out.println(count_buffer_vacio);
+
         // Calculando probabilidad real de buffer vacío P(0) 
-        float real_P_0 = (float) count_buffer_vacio / n;
+        float real_P_0 = (float) C_n[0] / n;
         System.out.println("Probabilidad de que el buffer esté vacío " + real_P_0);
 
         // Calculando probabilidades reales de posición n ocupada en buffer    
         float real_P_n[] = new float[nbuffer + 1];
         for (int i = 0; i < C_n.length; i++) {
             real_P_n[i] = (float) C_n[i] / (n - count_pkt_perdidos);
-            sum_aux += real_P_n[i];
-            System.out.println("sum" + sum_aux);
         }
 
         // Calculando probabilidades teoricas de posicion n ocupada en buffer
-        float teoric_P_n[] = new float[nbuffer + 1];
+        double teoric_P_n[] = new double[nbuffer + 1];
         for (int i = 0; i < real_P_n.length; i++) {
-            teoric_P_n[i] = (float) (real_P_0 * Math.pow((1 / tau) / Miu, nbuffer));
+            teoric_P_n[i] = Math.pow(rho, i) * ((1 - rho) / (1 - Math.pow(rho, nbuffer + 1)));
         }
 
-        for (int i = 0; i < nbuffer; i++) {
+        // Calculando probabilidad real de ocupación del canal E(n)
+        float real_E_n = 0;
+        for (int i = 0; i < real_P_n.length; i++) {
+            real_E_n += real_P_n[i] * i;
             System.out.println("Probabilidad real de " + i + " es " + real_P_n[i]);
             System.out.println("Probabilidad teorica de " + i + " es " + teoric_P_n[i]);
-            System.out.println(sum_aux);
         }
 
-        // Calculando probabilidad de bloqueo real
-        float real_Pb = count_pkt_perdidos / n;
+        //Calculando probabilidad teórica de ocupación 
+        float teoric_E_n;
+        if (rho > 1) {
+            teoric_E_n = nbuffer;
+        } else if (rho < 1) {
+            teoric_E_n = (float) (rho / ((1 - Math.pow(rho, nbuffer + 1)) * (1 - rho)));
+        } else {
+            teoric_E_n = -99;
+        }
+        System.out.println("Probabilidad de ocupación real " + real_E_n);
+        System.out.println("Probabilidad de ocupación teórica " + teoric_E_n);
+
+//        System.out.println("Paquetes perdidos " + count_pkt_perdidos);
+//        // Calculando probabilidad de bloqueo real
+//        float real_Pb = (float) count_pkt_perdidos / n;
+//        
+//        // Calculando probabilidad de bloqueo teórica
+//        float teoric_Pb =  (float) (Math.pow(rho, nbuffer) * ((1 - rho) / (1 - Math.pow(rho, nbuffer + 1))));
+//        
+//        System.out.println("Probabilidad real de bloque "+real_Pb);
+//        System.out.println("Probabilidad teórica de bloque "+teoric_Pb);
+        System.out.println("Paquetes enviados inmediatamente " + C_n[0]);
+        System.out.println("Paquetes rechazados " + count_pkt_perdidos);
 
         //Calculando probabilidad de bloqueo teórica
         //float teoric_Pb
-             //   = //            txt.close();
-                //        } catch (Exception ex) {
-                //            Logger.getLogger(Redes_simulacion.class.getName()).log(Level.SEVERE, null, ex);
-                //        }
+        //   = //            txt.close();
+        //        } catch (Exception ex) {
+        //            Logger.getLogger(Redes_simulacion.class.getName()).log(Level.SEVERE, null, ex);
+        //        }
     }
 
 }
