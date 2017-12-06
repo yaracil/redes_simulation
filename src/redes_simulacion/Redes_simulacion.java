@@ -117,13 +117,13 @@ public class Redes_simulacion {
         System.out.println("Probabilidad de que el buffer esté vacío " + real_P_0);
 
         // Calculando probabilidades reales de posición n ocupada en buffer    
-        float real_P_n[] = new float[nbuffer + 1];
+        Double real_P_n[] = new Double[nbuffer + 1];
         for (int i = 0; i < C_n.length; i++) {
-            real_P_n[i] = (float) C_n[i] / (n - count_pkt_perdidos);
+            real_P_n[i] = new Double((float)C_n[i] / (n - count_pkt_perdidos));
         }
 
         // Calculando probabilidades teoricas de posicion n ocupada en buffer
-        double teoric_P_n[] = new double[nbuffer + 1];
+        Double teoric_P_n[] = new Double[nbuffer + 1];
         for (int i = 0; i < real_P_n.length; i++) {
             teoric_P_n[i] = Math.pow(rho, i) * ((1 - rho) / (1 - Math.pow(rho, nbuffer + 1)));
         }
@@ -159,6 +159,24 @@ public class Redes_simulacion {
 //        System.out.println("Probabilidad teórica de bloque "+teoric_Pb);
         System.out.println("Paquetes enviados inmediatamente " + C_n[0]);
         System.out.println("Paquetes rechazados " + count_pkt_perdidos);
+
+        // Creando gráficas
+        Object data[][] = new Object[3][2 * (nbuffer + 1)];
+        for (int i = 0; i < 2*(nbuffer + 1); i++) {
+            if (i < (nbuffer + 1)) {
+                data[0][i] = real_P_n[i];
+                data[1][i] = i;
+                data[2][i] = "Probabilidad real";               
+            } else {
+                data[0][i] = teoric_P_n [i - (nbuffer + 1)];
+                data[1][i] = i - (nbuffer + 1);
+                data[2][i] = "Probabilidad teórica";                
+            }
+            System.out.println(data[0][i]+"--"+data[1][i]+"--"+data[2][i]);
+        }
+
+        chart probabilidades_n = new chart(data);
+        probabilidades_n.setVisible(true);
 
         //Calculando probabilidad de bloqueo teórica
         //float teoric_Pb
