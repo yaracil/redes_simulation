@@ -151,7 +151,7 @@ public class simulacion {
         if (rho > 1) {
             teoric_E_n = nbuffer;
         } else {   // rho < 1 
-            teoric_E_n = (float) (rho / (1 - rho));
+            teoric_E_n = (float) (rho / (1- Math.pow(rho, nbuffer+1)));
         }
 
         //("Probabilidad de ocupación real " + real_E_n);
@@ -175,7 +175,7 @@ public class simulacion {
             }
             //(data[0][i] + "--" + data[1][i] + "--" + data[2][i]);
         }
-        chart probabilidades_n = new chart(data);
+        chart probabilidades_n = new chart(data,"Probabilidad de ocupación","Posición n del buffer");
         probabilidades_n.setVisible(true);
     }
 

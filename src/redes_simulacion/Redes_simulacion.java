@@ -24,10 +24,84 @@ public class Redes_simulacion {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        simulacion sim = new simulacion(20,10);
-        sim.run();
-        sim.showChart();
 
+        int n = 30; // valores de prueba
+//
+        double[] prob_bloqueo_real = new double[n];
+        double[] prob_bloqueo_teoric = new double[n];
+
+        double[] prob_ocupacion_real = new double[n];
+        double[] prob_ocupacion_teoric = new double[n];
+
+        double[] paquetes_perdidos = new double[n];
+
+        simulacion sim2 = new simulacion(9, 10);
+        sim2.run();
+        sim2.showChart();
+//        double[] ppkt_perd = new double[n];
+//        double[] prob_vacio = new double[n];
+        simulacion sim;
+        for (int i = 1; i <= n; i++) {
+            sim = new simulacion(i, 10);
+            sim.run();
+            prob_ocupacion_real[i - 1] = sim.getReal_E_n();
+            prob_bloqueo_real[i - 1] = sim.real_P_n[5];
+          //  if (i != 10) {
+                prob_ocupacion_teoric[i - 1] = sim.getTeoric_E_n();
+                prob_bloqueo_teoric[i - 1] = sim.getTeoric_P_n()[5];
+         //   } else {
+           // prob_ocupacion_teoric[i - 1] = prob_ocupacion_teoric[i - 2];
+           //  prob_bloqueo_teoric[i - 1] = prob_bloqueo_teoric[i - 2];
+         //   }
+            System.out.println("iteracion " + i);
+            System.out.println(prob_bloqueo_real[i - 1]);
+            System.out.println(prob_bloqueo_teoric[i - 1]);
+            System.out.println(prob_ocupacion_real[i - 1]);
+//            System.out.println(prob_ocupacion_teoric[i - 1]);
+
+        }
+
+//        Object data[][] = new Object[3][60];
+//        for (int i = 0; i < 60; i++) {
+//            if (i < 30) {
+//                data[0][i] = prob_bloqueo_real[i];
+//                data[1][i] = i + 1;
+//                data[2][i] = "Probabilidad real";
+//            } else {
+//                data[0][i] = prob_bloqueo_teoric[i - 30];
+//                data[1][i] = i - 29;
+//                data[2][i] = "Probabilidad teórica";
+//            }
+//            //(data[0][i] + "--" + data[1][i] + "--" + data[2][i]);
+//        }
+//        chart probabilidades_n = new chart(data, "Valor Mu", "Probabilidad de bloqueo");
+//        probabilidades_n.setVisible(true);
+        Object datas[][] = new Object[3][2 * n];
+        //  Object dates[][] = new Object[3][n];
+        for (int i = 0; i < 2 * n; i++) {
+            if (i < n) {
+                datas[0][i] = prob_bloqueo_real[i];
+                datas[1][i] = i + 1;
+                datas[2][i] = "Valor real";
+                //  System.out.println(prob_ocupacion_real[i]);
+            } else {
+                datas[0][i] = prob_bloqueo_teoric[i - n];
+                datas[1][i] = i - n + 1;
+                datas[2][i] = "Valor Teórico";
+//                System.out.println(prob_ocupacion_teoric[i - 30]);
+            }
+            //(data[0][i] + "--" + data[1][i] + "--" + data[2][i]);
+        }
+
+        chart probabili_n = new chart(datas, "Valor Mu", "Probabilidad de bloqueo");
+        probabili_n.setVisible(true);
+//        
+//        chart probabilidd_n = new chart(dates, "Valor Mu", "Probabilidad de buffer vacio");
+//        probabilidd_n.setVisible(true);
+
+//        simulacion sim = new simulacion(2,10);
+//        sim.run();
+//        sim.showChart();      
     }
 }
 

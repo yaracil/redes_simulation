@@ -26,15 +26,15 @@ public class chart extends javax.swing.JFrame {
      *
      * @param Data
      */
-    public chart(Object Data[][]) {
+    public chart(Object Data[][],String ejeX, String ejeY) {
         initComponents();
 
         for (int i = 0; i < Data[0].length; i++) {
             Datos.addValue((Double) Data[0][i], (Comparable) Data[2][i], (Comparable) Data[1][i]);
         }
 
-        chart = ChartFactory.createLineChart("Probabilidades de ocupación n",
-                "Posición n del buffer", "No. Paquete", Datos);
+        chart = ChartFactory.createLineChart("",
+                ejeX, ejeY, Datos);
 
         ChartPanel Panel = new ChartPanel(chart);
         JFrame Ventana = new JFrame("JFreeChart");
