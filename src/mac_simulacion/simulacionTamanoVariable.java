@@ -5,7 +5,6 @@
  */
 package mac_simulacion;
 
-import redes_simulacion.*;
 import static java.lang.Math.log;
 import java.util.LinkedList;
 import java.util.Random;
@@ -14,34 +13,38 @@ import java.util.Random;
  *
  * @author maestria
  */
-public class simulacion {
+public class simulacionTamanoVariable {
 
     int n, nbuffer, count_pkt_perdidos, pbuffer;
-    float Miu, lambda, time_tx_pkt, rho, tiempo_actual, teoric_E_n, real_E_n,
+    double Miu, lambda, lambda_pkt, data_rate, rho, tiempo_actual, teoric_E_n, real_E_n,
             servicio_2do_moment, teoric_TPsistema, real_TPsistema, teoric_TPcola, realTPcola;
-    float[] taus, linea_tiempo_llegada, linea_tiempo_tx;
+    float[] taus, tamanos_pkt, linea_tiempo_llegada, linea_tiempo_tx;
     LinkedList<Integer> buffer;
     int C_n[];
     Double[] teoric_P_n, real_P_n;
 
     Random ran;
 
-    public simulacion(float lambda, float miu, boolean tamano_variable) {
-        n = 10000;                // número de paquetes a enviar
-        nbuffer = 10;             // tamaño del buffer
+    public simulacionTamanoVariable(int n, double lambda, double miu, double data_rate, double tamP_pkt) {
+        this.n = n;                // número de paquetes a enviar
+        nbuffer = 1000;             // tamaño del buffer
         this.Miu = miu;              // tasa de servicio [pkt/seg]
         this.lambda = lambda;           // tasa promedio de llegada de pkt [pkt/seg]
-        time_tx_pkt = 1 / Miu; // tiempo promedio de tx de paquetes
+        this.lambda_pkt=tamP_pkt;
+
+        //time_tx_pkt = 1 / Miu; // tiempo promedio de tx de paquetes
         rho = lambda / Miu;    // intensidad del tráfico   
         // variables auxiliares
         ran = new Random();   // variable para generar valores aleatorios con distribución normal
         taus = new float[n];  // tiempos entre paquetes [distribución de Poisson] 
+        tamanos_pkt = new float[n];    //tamanos de paquetes [distribución de Poisson]
         linea_tiempo_llegada = new float[n]; // línea de tiempo de llegada de los paquetes
         buffer = new LinkedList<>(); // simulación del buffer
         linea_tiempo_tx = new float[n]; // línea de tiempo de transmisión de los paquetes
-        //count_pkt_perdidos = 0;       // total de paqutes perdidos
+        count_pkt_perdidos = 0;       // total de paqutes perdidos
         C_n = new int[nbuffer + 1]; // conteo de ocupacion de posicion n en el buffer     
-        pbuffer = 0;                  // última posición ocupada en el buffer 
+        pbuffer = 0;                  // última posición ocupada en el buffer
+        this.data_rate=data_rate;
 
         // tiempo_actual;          // tiempo de llegada del último paquete
         // teoric_E_n;                 // cantidad teórica de paquetes promedio en el buffer (E(n))
@@ -50,11 +53,7 @@ public class simulacion {
         teoric_P_n = new Double[nbuffer + 1];
         // probabilidades reales de ocupación de cada n posición del buffer
         real_P_n = new Double[nbuffer + 1];
-        if (!tamano_variable) {
-            servicio_2do_moment = (float) (1 / Math.pow(miu, 2));
-        } else {
-            servicio_2do_moment = (float) (2 / Math.pow(miu, 2));
-        }
+        servicio_2do_moment = (float) (2 / Math.pow(miu, 2));
     }
 
     void run() {
@@ -63,6 +62,7 @@ public class simulacion {
         for (int i = 0; i < n; i++) {
             // inicializar los tiempos entre paquetes [distribución de Poisson] 
             taus[i] = (float) (-(1 / lambda) * log(1 - ran.nextFloat()));
+            tamanos_pkt[i] = (float) (-(lambda_pkt ) * log(1 - ran.nextFloat()));
             // definición de los tiempos de llegada de cada paquete 
             sum += taus[i];
             linea_tiempo_llegada[i] = sum;
@@ -70,7 +70,7 @@ public class simulacion {
 
         //transmision del 1er paquete
         System.out.println("LLEGÓ PAQUETE " + 1 + " TIEMPO -> " + linea_tiempo_llegada[0]);
-        linea_tiempo_tx[0] = linea_tiempo_llegada[0] + time_tx_pkt;
+        linea_tiempo_tx[0] = (float) (linea_tiempo_llegada[0] + tamanos_pkt[0]/data_rate);
         //("NO HAY PAQUETES EN EL BUFFER...SE TRANSMITE");
         //("BUFFER--->" + buffer);
         C_n[pbuffer] += 1;
@@ -92,13 +92,13 @@ public class simulacion {
                 // según el tiempo actual y sus respectivos tiempos de transmisión
                 if (linea_tiempo_tx[buffer.get(j) - 1] <= tiempo_actual) {
                     // texto de salida por consola
-                    System.out.println("SE TRASMITE PAQUETE " + (buffer.get(j))
-                            + " TIEMPO -> " + linea_tiempo_tx[buffer.get(j) - 1]);
+//                    System.out.println("SE TRASMITE PAQUETE " + (buffer.get(j))
+//                            + " TIEMPO -> " + linea_tiempo_tx[buffer.get(j) - 1]);
                     // se transmite el paquete
                     buffer.remove(j);
                     pbuffer--;
                     j--;
-                    System.out.println("BUFFER--->" + buffer);
+//                    System.out.println("BUFFER--->" + buffer);
                 } else {
                     break;
                 }
@@ -106,8 +106,8 @@ public class simulacion {
             // si queda algún paquete por llegar al buffer
             if (i < n) {
                 // texto de salida por consola
-                System.out.println("LLEGÓ PAQUETE " + (i + 1) + " TIEMPO -> "
-                        + tiempo_actual);
+//                System.out.println("LLEGÓ PAQUETE " + (i + 1) + " TIEMPO -> "
+//                        + tiempo_actual + "--tamanno--" + tamanos_pkt[i]+" tiempo tx "+tamanos_pkt[i]/data_rate);
                 // analizo qué debo hacer con el paquete teniendo en cuenta 
                 // el tiempo de tx del paquete anterior y el tiempo actual
                 // si el paquete anterior no se ha transmitido 
@@ -118,21 +118,21 @@ public class simulacion {
                         buffer.add(i + 1);
                         pbuffer++;
                         // defino el tiempo de tx del paquete luego de que se tx el anterior
-                        linea_tiempo_tx[i] = linea_tiempo_tx[i - 1] + time_tx_pkt;
-                        System.out.println("SE ACUMULA");
+                        linea_tiempo_tx[i] = (float) (linea_tiempo_tx[i - 1] + tamanos_pkt[i]/data_rate);
+//                        System.out.println("SE ACUMULA");
                         // aumento contador de la posición actual del buffer
                         C_n[pbuffer] += 1;
                     } else {   // desecho paquete porque el buffer está lleno
                         linea_tiempo_tx[i] = linea_tiempo_tx[i - 1];
-                        System.out.println("SE DESECHA PAQUETE");
+//                        System.out.println("SE DESECHA PAQUETE");
                         count_pkt_perdidos++;
                     }
                 } else {
                     // si el tiempo de transmisión del paquete anterior es menor al tiempo
                     // actual, significa que no hay paquetes pendientes en el buffer       
-                    linea_tiempo_tx[i] = tiempo_actual + time_tx_pkt;
+                    linea_tiempo_tx[i] = (float) (tiempo_actual + tamanos_pkt[i]/data_rate);
                     // texto de salida por consola
-                    System.out.println("NO HAY PAQUETES EN EL BUFFER...SE TRANSMITE");
+//                    System.out.println("NO HAY PAQUETES EN EL BUFFER...SE TRANSMITE");
                     C_n[pbuffer] += 1;
                 }
             }
@@ -152,84 +152,62 @@ public class simulacion {
 
         //Calculando tiempo promedio en sistema
         float tiempos_ensistema = 0;
+        float tiempos_encola = 0;
+
         for (int i = 0; i < n; i++) {
             //System.out.println("llegada "+linea_tiempo_llegada[i]+" salida "+linea_tiempo_tx);
             tiempos_ensistema += linea_tiempo_tx[i] - linea_tiempo_llegada[i];
+
+            // System.out.println("llegada "+linea_tiempo_llegada[i]+" salida "+linea_tiempo_tx[i]+ "tiempo en sistema" + (linea_tiempo_tx[i]-linea_tiempo_llegada[i]));
+            tiempos_encola += linea_tiempo_tx[i] - linea_tiempo_llegada[i] - tamanos_pkt[i]/data_rate;
         }
         real_TPsistema = tiempos_ensistema / n;
-        
+
         //Calculando tiempo promedio en cola
-        float tiempos_encola = 0;
-        for (int i = 0; i < n; i++) {
-            System.out.println("llegada "+linea_tiempo_llegada[i]+" salida "+linea_tiempo_tx[i]+ "tiempo tx"+time_tx_pkt);
-            tiempos_encola += linea_tiempo_tx[i] - linea_tiempo_llegada[i]-time_tx_pkt;
-        }
         realTPcola = tiempos_encola / n;
 
         //Calculando cantidad promedio teórica de paquetes esperados
         if (rho >= 1) {
             teoric_E_n = nbuffer;
+            teoric_TPsistema = 1 / Miu + (lambda * servicio_2do_moment) / (2 * (1 - 0.9999));
+            teoric_TPcola = (lambda * servicio_2do_moment) / (2 * (1 - 0.9999));
+
         } else {   // rho < 1 
-            teoric_E_n = (float) (rho + (Math.pow(lambda, 2) * servicio_2do_moment) / (2 * (1 - rho)));
+            teoric_E_n = (rho + (Math.pow(lambda, 2) * servicio_2do_moment) / (2 * (1 - rho)));
+
+            //Calculando tiempo teórico promedio en el sistema
+            teoric_TPsistema = 1 / Miu + (lambda * servicio_2do_moment) / (2 * (1 - rho));
+
+            //Calculando tiempo teórico promedio en la cola
+            teoric_TPcola = (lambda * servicio_2do_moment) / (2 * (1 - rho));
         }
-
-        //Calculando tiempo teórico promedio en el sistema
-        teoric_TPsistema = 1 / Miu + (lambda * servicio_2do_moment) / (2 * (1 - rho));
-
-        //Calculando tiempo teórico promedio en la cola
-        teoric_TPcola = (lambda * servicio_2do_moment) / (2 * (1 - rho));
     }
 
-//    void showChart() {
-//        // Creando gráficas
-//        Object data[][] = new Object[3][2 * (nbuffer + 1)];
-//        for (int i = 0; i < 2 * (nbuffer + 1); i++) {
-//            if (i < (nbuffer + 1)) {
-//                data[0][i] = real_P_n[i];
-//                data[1][i] = i;
-//                data[2][i] = "Probabilidad real";
-//            } else {
-//                data[0][i] = teoric_P_n[i - (nbuffer + 1)];
-//                data[1][i] = i - (nbuffer + 1);
-//                data[2][i] = "Probabilidad teórica";
-//            }
-//        }
-//        chart probabilidades_n = new chart(data,"Probabilidad de ocupación","Posición n del buffer");
-//        probabilidades_n.setVisible(true);
-//    }
-    public int getCount_pkt_perdidos() {
-        return count_pkt_perdidos;
-    }
-
-    public float getTeoric_E_n() {
+    public double getTeoric_E_n() {
         return teoric_E_n;
     }
 
-    public float getReal_E_n() {
+    public double getReal_E_n() {
         return real_E_n;
-    }
-
-    public Double[] getReal_P_n() {
-        return real_P_n;
     }
 
     public Double[] getTeoric_P_n() {
         return teoric_P_n;
     }
 
-    public float getRealTPcola() {
+    public double getRealTPcola() {
         return realTPcola;
     }
 
-    public float getReal_TPsistema() {
+    public double getReal_TPsistema() {
         return real_TPsistema;
     }
 
-    public float getTeoric_TPcola() {
+    public double getTeoric_TPcola() {
         return teoric_TPcola;
     }
 
-    public float getTeoric_TPsistema() {
+    public double getTeoric_TPsistema() {
         return teoric_TPsistema;
-    }    
+    }
 }
