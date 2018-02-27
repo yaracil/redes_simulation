@@ -51,7 +51,7 @@ public class Redes_simulacion {
             miu = (float) (c / tamPakt);
 
             // TAMANNO FIJO 
-            simulacionTamanoFijo simulacionTamFijo = new simulacionTamanoFijo(n, lambda, miu);
+            simulacionTamanoFijo simulacionTamFijo = new simulacionTamanoFijo(n, lambda, miu,55);
             simulacionTamFijo.run();
             dataOcupacion[0][i] = simulacionTamFijo.getReal_E_n();
             dataOcupacion[1][i] = k;
