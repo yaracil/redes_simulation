@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package mac_simulacion;
+package mac_FDMA_simulacion;
 
 import redes_simulacion.*;
 import javax.swing.JFrame;
