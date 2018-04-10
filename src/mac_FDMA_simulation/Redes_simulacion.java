@@ -3,7 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package mac_FDMA_simulacion;
+package mac_FDMA_simulation;
+
+import common.chart;
 
 /**
  *

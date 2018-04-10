@@ -3,7 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package mac_TDMA_simulacion;
+package mac_SlottedAloha_simulation;
+
+import mac_TDMA_simulation.*;
+import common.chart;
 
 /**
  *
@@ -51,7 +54,7 @@ public class Redes_simulacion {
             miu = (float) (c / tamPakt);
 
             // TAMANNO FIJO 
-            simulacionTamanoFijo simulacionTamFijo = new simulacionTamanoFijo(n, lambda, miu,55);
+            simulacion simulacionTamFijo = new simulacion(n, lambda, miu,55);
             simulacionTamFijo.run();
             dataOcupacion[0][i] = simulacionTamFijo.getReal_E_n();
             dataOcupacion[1][i] = k;

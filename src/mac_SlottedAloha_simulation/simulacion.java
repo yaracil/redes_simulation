@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package mac_FDMA_simulacion;
+package mac_SlottedAloha_simulation;
 
+import mac_TDMA_simulation.*;
 import static java.lang.Math.log;
 import java.util.LinkedList;
 import java.util.Random;
@@ -13,11 +14,11 @@ import java.util.Random;
  *
  * @author maestria
  */
-public class simulacionTamanoFijo {
+public class simulacion {
 
     int n, nbuffer, count_pkt_perdidos, pbuffer;
-    double Miu, lambda, time_tx_pkt, rho, tiempo_actual, teoric_E_n, real_E_n,
-            servicio_2do_moment, teoric_TPsistema, real_TPsistema, teoric_TPcola, realTPcola;
+    double Miu, lambda, time_tx_pkt, rho, tiempo_actual, teoric_E_n, real_E_n,tiempoto_nextframe,
+            servicio_2do_moment, teoric_TPsistema, real_TPsistema, teoric_TPcola, realTPcola,inicio_envio;
     float[] taus, linea_tiempo_llegada, linea_tiempo_tx;
     LinkedList<Integer> buffer;
     int C_n[];
@@ -25,7 +26,7 @@ public class simulacionTamanoFijo {
 
     Random ran;
 
-    public simulacionTamanoFijo(int n, double lambda, double miu) {
+    public simulacion(int n, double lambda, double miu, int cant_clientes) {
         this.n = n;                // número de paquetes a enviar
         nbuffer = 1000;             // tamaño del buffer
         this.Miu = miu;              // tasa de servicio [pkt/seg]
@@ -50,6 +51,7 @@ public class simulacionTamanoFijo {
         // probabilidades reales de ocupación de cada n posición del buffer
         real_P_n = new Double[nbuffer + 1];
         servicio_2do_moment = (float) (1 / Math.pow(miu, 2));
+        tiempoto_nextframe= time_tx_pkt*cant_clientes;
     }
 
     void run() {
@@ -65,6 +67,7 @@ public class simulacionTamanoFijo {
 
         //transmision del 1er paquete
         //  System.out.println("LLEGÓ PAQUETE " + 1 + " TIEMPO -> " + linea_tiempo_llegada[0]);
+        inicio_envio=Math.ceil(linea_tiempo_llegada[0]%tiempoto_nextframe)*tiempoto_nextframe;
         linea_tiempo_tx[0] = (float) (linea_tiempo_llegada[0] + time_tx_pkt);
         //("NO HAY PAQUETES EN EL BUFFER...SE TRANSMITE");
         //("BUFFER--->" + buffer);
@@ -114,13 +117,13 @@ public class simulacionTamanoFijo {
                         buffer.add(i + 1);
                         pbuffer++;
                         // defino el tiempo de tx del paquete luego de que se tx el anterior
-                        linea_tiempo_tx[i] = (float) (linea_tiempo_tx[i - 1] + time_tx_pkt);
+                        linea_tiempo_tx[i] = (float) (linea_tiempo_tx[i - 1]+ tiempoto_nextframe + time_tx_pkt);
                         //             System.out.println("SE ACUMULA");
                         // aumento contador de la posición actual del buffer
                         C_n[pbuffer] += 1;
                     } else {   // desecho paquete porque el buffer está lleno
                         linea_tiempo_tx[i] = linea_tiempo_tx[i - 1];
-                        //            System.out.println("SE DESECHA PAQUETE");
+                                    System.out.println("SE DESECHA PAQUETE");
                         count_pkt_perdidos++;
                     }
                 } else {
