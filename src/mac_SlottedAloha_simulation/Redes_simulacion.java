@@ -4,8 +4,6 @@
  * and open the template in the editor.
  */
 package mac_SlottedAloha_simulation;
-
-import mac_TDMA_simulation.*;
 import common.chart;
 
 /**
@@ -19,13 +17,13 @@ public class Redes_simulacion {
      */
     public static void main(String[] args) {
 
-        double velMaxCanal = 20 * Math.pow(10, 6),
-                lambda = 100,
+        double velMaxCanal = 20 * Math.pow(10, 6), 
+                lambda=1,
                 tamPakt = 10 * Math.pow(10, 3),
-                miu, c;
+                dataRate, c;
         int n = 100000;
         int cant_clientes = 20;
-        double paso = 0.5;
+        double paso = 10;
         int cant_datos_muestra = (int) ((1 / paso) * cant_clientes);
         int cant_graficas = 2;
         int tamano_dataArray = (int) (cant_graficas * cant_datos_muestra);
@@ -44,90 +42,93 @@ public class Redes_simulacion {
         Object dataTiempoColaTVariab[][] = new Object[3][cant_datos_muestra * 2];
 
         int i = 0, t, i2, t2;
-        for (double k = 0.5; k <= cant_clientes; k += paso, i++) {
+        for (int k=10; k <= 100; k += paso) {
 
             c = (float) (velMaxCanal / k);
             t = i + cant_datos_muestra;
             i2 = i + cant_datos_muestra * 2;
             t2 = i + cant_datos_muestra * 3;
 
-            miu = (float) (c / tamPakt);
+            dataRate = (float) (c / tamPakt);
 
             // TAMANNO FIJO 
-            simulacion simulacionTamFijo = new simulacion(n, lambda, miu,55);
+            //public simulacion(int n, double g, double dataRate, double tamPkt) 
+            System.out.println("LAMBDA----"+lambda);
+            simulacion simulacionTamFijo = new simulacion(n, lambda, velMaxCanal,tamPakt);
             simulacionTamFijo.run();
-            dataOcupacion[0][i] = simulacionTamFijo.getReal_E_n();
-            dataOcupacion[1][i] = k;
-            dataOcupacion[2][i] = "Probabilidad real tamaño fijo";
-
-            dataTiempoSistema[0][i] = simulacionTamFijo.getReal_TPsistema();
-            dataTiempoSistema[1][i] = k;
-            dataTiempoSistema[2][i] = "Probabilidad real tamaño fijo";
-
-            dataTiempoCola[0][i] = simulacionTamFijo.getRealTPcola();
-            dataTiempoCola[1][i] = k;
-            dataTiempoCola[2][i] = "Probabilidad real tamaño fijo";
-
-            dataOcupacion[0][t] = simulacionTamFijo.getTeoric_E_n();
-            dataOcupacion[1][t] = k;
-            dataOcupacion[2][t] = "Probabilidad teórica tamaño fijo";
-
-            dataTiempoCola[0][t] = simulacionTamFijo.getTeoric_TPcola();
-            dataTiempoCola[1][t] = k;
-            dataTiempoCola[2][t] = "Probabilidad teórica tamaño fijo";
-
-            dataTiempoSistema[0][t] = simulacionTamFijo.getTeoric_TPsistema();
-            dataTiempoSistema[1][t] = k;
-            dataTiempoSistema[2][t] = "Probabilidad teórica tamaño fijo";
-
-            // graficas II
-            dataOcupacionTFijo[0][i] = simulacionTamFijo.getReal_E_n();
-            dataOcupacionTFijo[1][i] = k;
-            dataOcupacionTFijo[2][i] = "Probabilidad real tamaño fijo";
-
-            dataOcupacionTFijo[0][t] = simulacionTamFijo.getTeoric_E_n();
-            dataOcupacionTFijo[1][t] = k;
-            dataOcupacionTFijo[2][t] = "Probabilidad teórica tamaño fijo";
-
-            dataTiempoSistemaTFijo[0][i] = simulacionTamFijo.getReal_TPsistema();
-            dataTiempoSistemaTFijo[1][i] = k;
-            dataTiempoSistemaTFijo[2][i] = "Probabilidad real tamaño fijo";
-
-            dataTiempoSistemaTFijo[0][t] = simulacionTamFijo.getTeoric_TPsistema();
-            dataTiempoSistemaTFijo[1][t] = k;
-            dataTiempoSistemaTFijo[2][t] = "Probabilidad teórica tamaño fijo";
-
-            dataTiempoColaTFijo[0][i] = simulacionTamFijo.getRealTPcola();
-            dataTiempoColaTFijo[1][i] = k;
-            dataTiempoColaTFijo[2][i] = "Probabilidad real tamaño fijo";            
-            
-            dataTiempoColaTFijo[0][t] = simulacionTamFijo.getTeoric_TPcola();
-            dataTiempoColaTFijo[1][t] = k;
-            dataTiempoColaTFijo[2][t] = "Probabilidad teórica tamaño fijo";
-            
-
-            System.out.println("Cantidad de clientes---" + k);
-            System.out.println("Velocidad de tx---" + c);
-            System.out.println("Miu-----" + miu);
-            System.out.println("Cantidad promedio real de paquetes en cola---" + simulacionTamFijo.getReal_E_n());
-            System.out.println("Cantidad promedio teorica de paquetes en cola---" + simulacionTamFijo.getTeoric_E_n());
-
-            System.out.println("Tiempo promedio real en sistema---" + simulacionTamFijo.getReal_TPsistema());
-            System.out.println("Tiempo promedio teorico en sistema---" + simulacionTamFijo.getTeoric_TPsistema());
-            System.out.println("Tiempo promedio real en cola---" + simulacionTamFijo.getRealTPcola());
-            System.out.println("Tiempo promedio teorico en cola---" + simulacionTamFijo.getTeoric_TPcola());
+            lambda=k;
+//            dataOcupacion[0][i] = simulacionTamFijo.getReal_E_n();
+//            dataOcupacion[1][i] = k;
+//            dataOcupacion[2][i] = "Probabilidad real tamaño fijo";
+//
+//            dataTiempoSistema[0][i] = simulacionTamFijo.getReal_TPsistema();
+//            dataTiempoSistema[1][i] = k;
+//            dataTiempoSistema[2][i] = "Probabilidad real tamaño fijo";
+//
+//            dataTiempoCola[0][i] = simulacionTamFijo.getRealTPcola();
+//            dataTiempoCola[1][i] = k;
+//            dataTiempoCola[2][i] = "Probabilidad real tamaño fijo";
+//
+//            dataOcupacion[0][t] = simulacionTamFijo.getTeoric_E_n();
+//            dataOcupacion[1][t] = k;
+//            dataOcupacion[2][t] = "Probabilidad teórica tamaño fijo";
+//
+//            dataTiempoCola[0][t] = simulacionTamFijo.getTeoric_TPcola();
+//            dataTiempoCola[1][t] = k;
+//            dataTiempoCola[2][t] = "Probabilidad teórica tamaño fijo";
+//
+//            dataTiempoSistema[0][t] = simulacionTamFijo.getTeoric_TPsistema();
+//            dataTiempoSistema[1][t] = k;
+//            dataTiempoSistema[2][t] = "Probabilidad teórica tamaño fijo";
+//
+//            // graficas II
+//            dataOcupacionTFijo[0][i] = simulacionTamFijo.getReal_E_n();
+//            dataOcupacionTFijo[1][i] = k;
+//            dataOcupacionTFijo[2][i] = "Probabilidad real tamaño fijo";
+//
+//            dataOcupacionTFijo[0][t] = simulacionTamFijo.getTeoric_E_n();
+//            dataOcupacionTFijo[1][t] = k;
+//            dataOcupacionTFijo[2][t] = "Probabilidad teórica tamaño fijo";
+//
+//            dataTiempoSistemaTFijo[0][i] = simulacionTamFijo.getReal_TPsistema();
+//            dataTiempoSistemaTFijo[1][i] = k;
+//            dataTiempoSistemaTFijo[2][i] = "Probabilidad real tamaño fijo";
+//
+//            dataTiempoSistemaTFijo[0][t] = simulacionTamFijo.getTeoric_TPsistema();
+//            dataTiempoSistemaTFijo[1][t] = k;
+//            dataTiempoSistemaTFijo[2][t] = "Probabilidad teórica tamaño fijo";
+//
+//            dataTiempoColaTFijo[0][i] = simulacionTamFijo.getRealTPcola();
+//            dataTiempoColaTFijo[1][i] = k;
+//            dataTiempoColaTFijo[2][i] = "Probabilidad real tamaño fijo";            
+//            
+//            dataTiempoColaTFijo[0][t] = simulacionTamFijo.getTeoric_TPcola();
+//            dataTiempoColaTFijo[1][t] = k;
+//            dataTiempoColaTFijo[2][t] = "Probabilidad teórica tamaño fijo";
+//            
+//
+//            System.out.println("Cantidad de clientes---" + k);
+//            System.out.println("Velocidad de tx---" + c);
+//            System.out.println("Miu-----" + miu);
+//            System.out.println("Cantidad promedio real de paquetes en cola---" + simulacionTamFijo.getReal_E_n());
+//            System.out.println("Cantidad promedio teorica de paquetes en cola---" + simulacionTamFijo.getTeoric_E_n());
+//
+//            System.out.println("Tiempo promedio real en sistema---" + simulacionTamFijo.getReal_TPsistema());
+//            System.out.println("Tiempo promedio teorico en sistema---" + simulacionTamFijo.getTeoric_TPsistema());
+//            System.out.println("Tiempo promedio real en cola---" + simulacionTamFijo.getRealTPcola());
+//            System.out.println("Tiempo promedio teorico en cola---" + simulacionTamFijo.getTeoric_TPcola());
 
         }
-        showChartOcupacion(dataOcupacion);
-        showChartTiempoenCola(dataTiempoCola);
-        showChartTiempoenSistema(dataTiempoSistema);
-        
-        showChartOcupacion(dataOcupacionTFijo);
-        showChartTiempoenCola(dataTiempoColaTFijo);
-        showChartTiempoenSistema(dataTiempoSistemaTFijo);
-        showChartOcupacion(dataOcupacionTVariab);
-        showChartTiempoenCola(dataTiempoColaTVariab);
-        showChartTiempoenSistema(dataTiempoSistemaTVariab);
+//        showChartOcupacion(dataOcupacion);
+//        showChartTiempoenCola(dataTiempoCola);
+//        showChartTiempoenSistema(dataTiempoSistema);
+//        
+//        showChartOcupacion(dataOcupacionTFijo);
+//        showChartTiempoenCola(dataTiempoColaTFijo);
+//        showChartTiempoenSistema(dataTiempoSistemaTFijo);
+//        showChartOcupacion(dataOcupacionTVariab);
+//        showChartTiempoenCola(dataTiempoColaTVariab);
+//        showChartTiempoenSistema(dataTiempoSistemaTVariab);
         
 
     }
