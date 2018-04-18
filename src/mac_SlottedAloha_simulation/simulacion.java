@@ -15,13 +15,11 @@ import java.util.Random;
 public class simulacion {
 
     int n, nbuffer, countSucc, slotActual, slotNuevo;
-    double dataRate, g, timeSlot, rho, tiempo_actual, teoric_E_n, real_E_n,
-            teoric_TPsistema, real_TPsistema, teoric_TPcola, realTPcola;
+    double dataRate, g, G, timeSlot, rho, tiempo_actual, teoric_S, real_S, trials_Real, trials_Teoric;
     float[] taus, linea_tiempo_llegada, linea_tiempo_tx;
     boolean colission;
 
     int C_n[];
-    Double[] teoric_P_n, real_P_n;
 
     Random ran;
 
@@ -66,7 +64,7 @@ public class simulacion {
             sum += taus[i];
             linea_tiempo_llegada[i] = sum;
         }
-        System.out.println("TIEMPO DE SLOT "+timeSlot);
+        //System.out.println("TIEMPO DE SLOT " + timeSlot);
 
         //transmision del 1er paquete
         slotActual = (int) Math.ceil(linea_tiempo_llegada[0] / timeSlot);
@@ -76,97 +74,58 @@ public class simulacion {
         // se inicia un ciclo que termina cuando se atienden a cada uno de los n paquetes 
         // y no queden paquetes por transmitir en la cola
         for (int i = 1; i < n; i++) {
-            
+
             slotNuevo = (int) Math.ceil(linea_tiempo_llegada[i] / timeSlot);
             tiempo_actual = slotNuevo * timeSlot;
-            
-         //   System.out.println("Nuevo pkt"+linea_tiempo_llegada[i]+" slot---"+slotNuevo);
+
+            //   System.out.println("Nuevo pkt"+linea_tiempo_llegada[i]+" slot---"+slotNuevo);
             if (slotActual != slotNuevo) {
                 slotActual = slotNuevo;
                 if (!colission) {
                     countSucc++;
-            //        System.out.println("NO COLISION ANTERIOR..se cuenta");
+                    //        System.out.println("NO COLISION ANTERIOR..se cuenta");
                 } else {
-           //         System.out.println("Colisiono anterior..no se cuenta");
+                    //         System.out.println("Colisiono anterior..no se cuenta");
                     colission = false;
                 }
             } else {
                 colission = true;
-             //   System.out.println("Colision!!!");
+                //   System.out.println("Colision!!!");
             }
             linea_tiempo_tx[i] = (float) (tiempo_actual + timeSlot);
         }
-        System.out.println("Paquetes satisfactorios****** " + countSucc);
-        System.out.println("THROUGPUT*********"+countSucc/(n*1.0));
 
-//        for (int i = 0; i < nbuffer + 1; i++) {
-//            // Calculando probabilidades reales de posición n ocupada en buffer
-////            real_P_n[i] = new Double((float) C_n[i] / (n - count_pkt_perdidos));
-//
-//            // Calculando probabilidades teoricas de posicion n ocupada en buffer
-//            //teoric_P_n[i] = Math.pow(rho, i) * ((1 - rho) / (1 - Math.pow(rho, nbuffer + 1)));
-//            // Calculando cantidad promedio real de paquetes esperados
-//            real_E_n += real_P_n[i] * i;
-//
-//        }
+        real_S = (countSucc * timeSlot) / (1.0 * linea_tiempo_tx[n - 1]);
+        G = timeSlot * g;
+        //S = gTP suc = gTe −gT
+        teoric_S = G * Math.exp(-G);
 
-//        //Calculando tiempo promedio en sistema
-//        float tiempos_ensistema = 0;
-//        float tiempos_encola = 0;
-//
-//        for (int i = 0; i < n; i++) {
-//            //System.out.println("llegada "+linea_tiempo_llegada[i]+" salida "+linea_tiempo_tx);
-//            tiempos_ensistema += linea_tiempo_tx[i] - linea_tiempo_llegada[i];
-//
-//            // System.out.println("llegada "+linea_tiempo_llegada[i]+" salida "+linea_tiempo_tx[i]+ "tiempo en sistema" + (linea_tiempo_tx[i]-linea_tiempo_llegada[i]));
-//            tiempos_encola += linea_tiempo_tx[i] - linea_tiempo_llegada[i] - timeSlot;
-//        }
-//        real_TPsistema = tiempos_ensistema / n;
-//
-//        //Calculando tiempo promedio en cola
-//        realTPcola = tiempos_encola / n;
-//
-//        //Calculando cantidad promedio teórica de paquetes esperados
-//        if (rho >= 1) {
-//            teoric_E_n = nbuffer;
-////            teoric_TPsistema = 1 / dataRate + (g * servicio_2do_moment) / (2 * (1 - 0.9999));
-////            teoric_TPcola = (g * servicio_2do_moment) / (2 * (1 - 0.9999));
-//
-//        } else {   // rho < 1 
-////            teoric_E_n = (rho + (Math.pow(g, 2) * servicio_2do_moment) / (2 * (1 - rho)));
-//
-//            //Calculando tiempo teórico promedio en el sistema
-////            teoric_TPsistema = 1 / dataRate + (g * servicio_2do_moment) / (2 * (1 - rho));
-//            //Calculando tiempo teórico promedio en la cola
-////            teoric_TPcola = (g * servicio_2do_moment) / (2 * (1 - rho));
-//        }
+        trials_Real = n / (1.0*countSucc);
+        trials_Teoric = Math.exp(G);
     }
 
-    public double getTeoric_E_n() {
-        return teoric_E_n;
+    public double getTeoric_S() {
+        return teoric_S;
     }
 
-    public double getReal_E_n() {
-        return real_E_n;
+    public double getReal_S() {
+        return real_S;
     }
 
-    public Double[] getTeoric_P_n() {
-        return teoric_P_n;
+    public int getCountSucc() {
+        return countSucc;
     }
 
-    public double getRealTPcola() {
-        return realTPcola;
+    public double getG() {
+        return G;
     }
 
-    public double getReal_TPsistema() {
-        return real_TPsistema;
+    public double getTrials_Real() {
+        return trials_Real;
     }
 
-    public double getTeoric_TPcola() {
-        return teoric_TPcola;
+    public double getTrials_Teoric() {
+        return trials_Teoric;
     }
 
-    public double getTeoric_TPsistema() {
-        return teoric_TPsistema;
-    }
 }
