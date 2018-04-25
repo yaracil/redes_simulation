@@ -5,11 +5,7 @@
  */
 package mac_CSMA1P_simulation;
 
-import mac_CSMA.NP_simulation.*;
-import mac_SlottedAloha_simulation.*;
-import common.TimeSeries_AWT;
 import common.chart;
-import org.jfree.ui.RefineryUtilities;
 
 /**
  *
@@ -24,14 +20,15 @@ public class Redes_simulacion {
 
         double velMaxCanal = 20 * Math.pow(10, 6),
                 lambda = 2,
-                tamPakt = 10* Math.pow(10, 3);
+                tamPakt = 10 * Math.pow(10, 3);
         int n = 100000;
         int cant_lambda = 50000;
         double paso = 10;
         int cantFuncXGraf = 2;
         int cant_datos_muestra = (int) ((1 / paso) * cant_lambda);
-      //  double tau = 25.6 * Math.pow(10, -6);
-      double tau=5*Math.pow(10, -6);
+        //  double tau = 25.6 * Math.pow(10, -6);
+        // double tau=50*Math.pow(10, -6);
+        double tau = tamPakt/velMaxCanal;
 
         //int clients[] = {1,5,10,11,12,13,14,15,16,17,18,19,20};
         Object[][] dataThroughput = new Object[3][cant_datos_muestra * cantFuncXGraf];
@@ -45,9 +42,9 @@ public class Redes_simulacion {
             //            t = i + cant_datos_muestra;
             //            i2 = i + cant_datos_muestra * 2;
             //            t2 = i + cant_datos_muestra * 3;
-            //  public simulacion(int n, double g, double dataRate, double tamPkt) 
+            //  public simulacion_csma1p(int n, double g, double dataRate, double tamPkt) 
             //  System.out.println("LAMBDA----" + lambda);
-            simulacion csma = new simulacion(n, lambda, velMaxCanal, tamPakt, tau);
+            simulacion_csma1p csma = new simulacion_csma1p(n, lambda, velMaxCanal, tamPakt, tau);
             csma.run();
             lambda = k;
             dataThroughput[0][i] = csma.getReal_S();

@@ -12,7 +12,7 @@ import java.util.Random;
  *
  * @author maestria
  */
-public class simulacion {
+public class simulacion_csma1p {
 
     int n, nbuffer, countSucc, countPerd, countColiss, countPacketWaiting;
     double dataRate, g_chik, G, alfa, tiempo_tx, time_succ,
@@ -36,7 +36,7 @@ public class simulacion {
     -   The rate of the scheduled points is g > λ since not all packets are successfully transmitted at first attempt.
     -   To simplify analysis, we will assume that the point process is a Poisson process.
      */
-    public simulacion(int n, double g, double dataRate, double tamPkt, double tiempo_prop) {
+    public simulacion_csma1p(int n, double g, double dataRate, double tamPkt, double tiempo_prop) {
         this.n = n;                // número de paquetes a enviar
         nbuffer = 100000;             // tamaño del buffer
         this.dataRate = dataRate;              // tasa de servicio [pkt/seg]
@@ -78,28 +78,39 @@ public class simulacion {
         // se inicia un ciclo que termina cuando se atienden a cada uno de los n paquetes 
         // y no queden paquetes por transmitir en la cola
         double int_llegada = 0;
+        double int_llegada_lasPaqOnTx = 0;
         //inicio de ciclo de tx
-        int paq=0;
-        for (int i = 1; i < n; i++) {
+        int lastPaqOnTx = 0;
+        int lastPaqColiding = 0;
+        int lastPaqWaiting = 0;
+
+        int estado_actual = 1;
+        for (int i = 0; i < n - 1; i++) {
             tiempo_actual = linea_tiempo_llegada[i];
-            int_llegada = tiempo_actual - linea_tiempo_llegada[paq];
+            int_llegada = tiempo_actual - linea_tiempo_llegada[i - 1];
             //   System.out.println("Nuevo pkt"+linea_tiempo_llegada[i]+" slot---"+slotNuevo);
             if (int_llegada > tiempo_prop && tiempo_actual < (linea_tiempo_tx[i - 1] + tiempo_prop)) {
                 //canal ocupado
-                linea_tiempo_tx[i] = linea_tiempo_tx[i - 1];
+                //  linea_tiempo_tx[i] = linea_tiempo_tx[i - 1];
+                linea_tiempo_llegada[i] = (float) (linea_tiempo_tx[i - 1] + tiempo_prop);
+                linea_tiempo_tx[i] = (float) (linea_tiempo_llegada[i] + tiempo_tx);
+                countSucc++;
+            } else if (int_llegada <= 0) {
                 countPacketWaiting++;
+                
             } else if (int_llegada <= tiempo_prop) {
                 //canal libre--->colision
                 if (!colission) {
                     countColiss++;
                 }
+                countColiss++;
                 colission = true;
                 // linea_tiempo_tx[i] = (float) (tiempo_actual + tiempo_tx + tiempo_prop);
                 linea_tiempo_tx[i] = (float) (tiempo_actual + tiempo_tx);
             } else {
                 //canal libre
-                if (!colission&&countPacketWaiting>1) {
-                    countSucc++;                    
+                if (!colission && countPacketWaiting <= 1) {
+                    countSucc++;
                     //        System.out.println("NO COLISION ANTERIOR..se cuenta");
                 } else {
                     //         System.out.println("Colisiono anterior..no se cuenta");
@@ -107,21 +118,54 @@ public class simulacion {
                 }
                 // linea_tiempo_tx[i] = (float) (tiempo_actual+ tiempo_tx+tiempo_prop);
                 linea_tiempo_tx[i] = (float) (tiempo_actual + tiempo_tx);
-                countPacketWaiting=0;
-                paq=i;
+                countPacketWaiting = 0;
+                lastPaqOnTx = i;
             }
+//            tiempo_actual = linea_tiempo_llegada[i];
+//            switch (estado_actual) {
+//                case 0: {
+//
+//                    break;
+//                }
+//
+//                case 1: {
+//                    int_llegada = linea_tiempo_llegada[i + 1] - tiempo_actual;
+//                    if (int_llegada <= tiempo_prop) {
+//                        do {
+//                            int_llegada = linea_tiempo_llegada[i + 1] - tiempo_actual;
+//                            linea_tiempo_tx[i] = (float) (tiempo_actual + tiempo_tx);
+//                        } while (int_llegada <= tiempo_prop);
+//
+//                        estado_actual = 2;
+//                    } else {
+//                        countSucc++;
+//                        lastPaqOnTx = i;
+//                    }
+//
+//                    break;
+//                }
+//
+//                case 2: {
+//                    //mas de un paquete en espera
+//                    countColiss++;
+//                    linea_tiempo_tx[i] = (float) (linea_tiempo_tx[lastPaqOnTx] + tiempo_prop);
+//                    break;
+//                }
+//            }
+
         }
 
         real_S = ((countSucc) * (tiempo_tx)) / (1.0 * linea_tiempo_tx[n - 1]);
         //real_S=tiempo_tx*Math.exp(-g*tiempo_prop)/1.0 * linea_tiempo_tx[n - 1];
         // System.out.println("Count succ    " + countSucc);
 
-        G = g_chik * tiempo_tx;
-        alfa = tiempo_prop / tiempo_tx;
+        G = g_chik * tiempo_tx * 1.0;
+        alfa = tiempo_prop / tiempo_tx * 1.0;
 //        //S = gTe–gτ/g (T + 2τ) + e−gτ
-         teoric_S = (G*Math.exp(-G*(1+2*alfa))*(1+G+alfa*G*(1+G+(alfa*G)/2)))/(G*(1+2*alfa)-(1-Math.exp(-G*alfa)+(1+G*alfa)*Math.exp(-G*(1+alfa))));
-        //  teoric_S=(tiempo_tx*Math.exp(-g*tiempo_prop))/(tiempo_tx+2*tiempo_prop+1/g);
-   //     teoric_S = (G * Math.exp(-G * (1 + 2 * alfa)) * (1 + G + alfa * G * (1 + G + (alfa * G) / 2))) / (G * (1 + alfa * 2) - (1 - Math.exp(-G * alfa)) + (1 - G * alfa) * Math.exp(-G * (1 + alfa)));
+        // teoric_S = (G*Math.exp(-G*(1+2*alfa))*(1+G+alfa*G*(1+G+alfa*G/2)))/(G*(1+2*alfa)-(1-Math.exp(-G*alfa)+(1+G*alfa)*Math.exp(-G*(1+alfa))));
+        teoric_S = (g_chik * tiempo_tx * Math.exp(-g_chik * (tiempo_tx + 2 * tiempo_prop)) * (1 + g_chik * tiempo_tx + g_chik * tiempo_prop * (1 + g_chik * tiempo_tx + g_chik * tiempo_prop / 2))) / (g_chik * (tiempo_tx + 2 * tiempo_prop) - (1 - Math.exp(-g_chik * tiempo_prop)) + (1 + g_chik * tiempo_prop) * Math.exp(-g_chik * (tiempo_tx + tiempo_prop)));
+//  teoric_S=(tiempo_tx*Math.exp(-g*tiempo_prop))/(tiempo_tx+2*tiempo_prop+1/g);
+        //     teoric_S = (G * Math.exp(-G * (1 + 2 * alfa)) * (1 + G + alfa * G * (1 + G + (alfa * G) / 2))) / (G * (1 + alfa * 2) - (1 - Math.exp(-G * alfa)) + (1 - G * alfa) * Math.exp(-G * (1 + alfa)));
 //
 //        trials_Real = n / (1.0 * countSucc);
 //        trials_Teoric = Math.exp(G);
@@ -143,14 +187,6 @@ public class simulacion {
         return G;
     }
 
-    public double getTrials_Real() {
-        return trials_Real;
-    }
-
-    public double getTrials_Teoric() {
-        return trials_Teoric;
-    }
-
     public int getCountColiss() {
         return countColiss;
     }
@@ -162,6 +198,5 @@ public class simulacion {
     public double getG_chik() {
         return g_chik;
     }
-    
 
 }
