@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package mac_SlottedAloha_simulation;
+package mac_CSMA1P_simulation;
 
 import static java.lang.Math.log;
 import java.util.Random;
@@ -14,8 +14,9 @@ import java.util.Random;
  */
 public class simulacion {
 
-    int n, nbuffer, countSucc, slotActual, slotNuevo;
-    double dataRate, g_chiq, G, timeSlot, rho, tiempo_actual, teoric_S, real_S, trials_Real, trials_Teoric;
+    int n, nbuffer, countSucc, countPerd, countColiss, countPacketWaiting;
+    double dataRate, g_chik, G, alfa, tiempo_tx, time_succ,
+            tiempo_prop, tiempo_actual, teoric_S, real_S, trials_Real, trials_Teoric;
     float[] taus, linea_tiempo_llegada, linea_tiempo_tx;
     boolean colission;
 
@@ -35,22 +36,25 @@ public class simulacion {
     -   The rate of the scheduled points is g > λ since not all packets are successfully transmitted at first attempt.
     -   To simplify analysis, we will assume that the point process is a Poisson process.
      */
-    public simulacion(int n, double g, double dataRate, double tamPkt) {
+    public simulacion(int n, double g, double dataRate, double tamPkt, double tiempo_prop) {
         this.n = n;                // número de paquetes a enviar
-        nbuffer = 1000;             // tamaño del buffer
+        nbuffer = 100000;             // tamaño del buffer
         this.dataRate = dataRate;              // tasa de servicio [pkt/seg]
-        this.g_chiq = g;           // tasa promedio de llegada de pkt [pkt/seg]
-        timeSlot = tamPkt / dataRate; // tiempo promedio de tx de paquetes
-        rho = g / this.dataRate;    // intensidad del tráfico   
+        this.g_chik = g;           // tasa promedio de llegada de pkt [pkt/seg] 
+        tiempo_tx = tamPkt / dataRate;
+        this.tiempo_prop = tiempo_prop;
         // variables auxiliares
         ran = new Random();   // variable para generar valores aleatorios con distribución normal
         taus = new float[n];  // tiempos entre paquetes [distribución de Poisson] 
         linea_tiempo_llegada = new float[n]; // línea de tiempo de llegada de los paquetes
         linea_tiempo_tx = new float[n]; // línea de tiempo de transmisión de los paquetes
-        countSucc = 0;                  // terminales en backoff 
-        slotActual = 0;
+        countSucc = 0;
+        countPerd = 0;
+        countColiss = 0;
+        //time_succ=0;
         tiempo_actual = 0;
         colission = false;
+        countPacketWaiting = 0;
 
     }
 
@@ -59,7 +63,7 @@ public class simulacion {
         float sum = 0;
         for (int i = 0; i < n; i++) {
             // inicializar los tiempos entre paquetes [distribución de Poisson] 
-            taus[i] = (float) (-(1 / g_chiq) * log(1 - ran.nextFloat()));
+            taus[i] = (float) (-(1 / g_chik) * log(1 - ran.nextFloat()));
             // definición de los tiempos de llegada de cada paquete 
             sum += taus[i];
             linea_tiempo_llegada[i] = sum;
@@ -67,41 +71,60 @@ public class simulacion {
         //System.out.println("TIEMPO DE SLOT " + timeSlot);
 
         //transmision del 1er paquete
-        slotActual = (int) Math.ceil(linea_tiempo_llegada[0] / timeSlot);
-        tiempo_actual = slotActual * timeSlot;
-        linea_tiempo_tx[0] = (float) (tiempo_actual + timeSlot);
+        tiempo_actual = linea_tiempo_llegada[0];
+        // linea_tiempo_tx[0] = (float) (tiempo_actual + tiempo_tx + tiempo_prop);
+        linea_tiempo_tx[0] = (float) (tiempo_actual + tiempo_tx);
 
         // se inicia un ciclo que termina cuando se atienden a cada uno de los n paquetes 
         // y no queden paquetes por transmitir en la cola
+        double int_llegada = 0;
+        //inicio de ciclo de tx
+        int paq=0;
         for (int i = 1; i < n; i++) {
-
-            slotNuevo = (int) Math.ceil(linea_tiempo_llegada[i] / timeSlot);
-            tiempo_actual = slotNuevo * timeSlot;
-
+            tiempo_actual = linea_tiempo_llegada[i];
+            int_llegada = tiempo_actual - linea_tiempo_llegada[paq];
             //   System.out.println("Nuevo pkt"+linea_tiempo_llegada[i]+" slot---"+slotNuevo);
-            if (slotActual != slotNuevo) {
-                slotActual = slotNuevo;
+            if (int_llegada > tiempo_prop && tiempo_actual < (linea_tiempo_tx[i - 1] + tiempo_prop)) {
+                //canal ocupado
+                linea_tiempo_tx[i] = linea_tiempo_tx[i - 1];
+                countPacketWaiting++;
+            } else if (int_llegada <= tiempo_prop) {
+                //canal libre--->colision
                 if (!colission) {
-                    countSucc++;
+                    countColiss++;
+                }
+                colission = true;
+                // linea_tiempo_tx[i] = (float) (tiempo_actual + tiempo_tx + tiempo_prop);
+                linea_tiempo_tx[i] = (float) (tiempo_actual + tiempo_tx);
+            } else {
+                //canal libre
+                if (!colission&&countPacketWaiting>1) {
+                    countSucc++;                    
                     //        System.out.println("NO COLISION ANTERIOR..se cuenta");
                 } else {
                     //         System.out.println("Colisiono anterior..no se cuenta");
                     colission = false;
                 }
-            } else {
-                colission = true;
-                //   System.out.println("Colision!!!");
+                // linea_tiempo_tx[i] = (float) (tiempo_actual+ tiempo_tx+tiempo_prop);
+                linea_tiempo_tx[i] = (float) (tiempo_actual + tiempo_tx);
+                countPacketWaiting=0;
+                paq=i;
             }
-            linea_tiempo_tx[i] = (float) (tiempo_actual + timeSlot);
         }
 
-        real_S = (countSucc * timeSlot) / (1.0 * linea_tiempo_tx[n - 1]);
-        G = timeSlot * g_chiq;
-        //S = gTP suc = gTe −gT
-        teoric_S = G * Math.exp(-G);
+        real_S = ((countSucc) * (tiempo_tx)) / (1.0 * linea_tiempo_tx[n - 1]);
+        //real_S=tiempo_tx*Math.exp(-g*tiempo_prop)/1.0 * linea_tiempo_tx[n - 1];
+        // System.out.println("Count succ    " + countSucc);
 
-        trials_Real = n / (1.0*countSucc);
-        trials_Teoric = Math.exp(G);
+        G = g_chik * tiempo_tx;
+        alfa = tiempo_prop / tiempo_tx;
+//        //S = gTe–gτ/g (T + 2τ) + e−gτ
+         teoric_S = (G*Math.exp(-G*(1+2*alfa))*(1+G+alfa*G*(1+G+(alfa*G)/2)))/(G*(1+2*alfa)-(1-Math.exp(-G*alfa)+(1+G*alfa)*Math.exp(-G*(1+alfa))));
+        //  teoric_S=(tiempo_tx*Math.exp(-g*tiempo_prop))/(tiempo_tx+2*tiempo_prop+1/g);
+   //     teoric_S = (G * Math.exp(-G * (1 + 2 * alfa)) * (1 + G + alfa * G * (1 + G + (alfa * G) / 2))) / (G * (1 + alfa * 2) - (1 - Math.exp(-G * alfa)) + (1 - G * alfa) * Math.exp(-G * (1 + alfa)));
+//
+//        trials_Real = n / (1.0 * countSucc);
+//        trials_Teoric = Math.exp(G);
     }
 
     public double getTeoric_S() {
@@ -128,8 +151,17 @@ public class simulacion {
         return trials_Teoric;
     }
 
-    public double getG_chiq() {
-        return g_chiq;
+    public int getCountColiss() {
+        return countColiss;
     }
+
+    public int getCountPerd() {
+        return countPerd;
+    }
+
+    public double getG_chik() {
+        return g_chik;
+    }
+    
 
 }

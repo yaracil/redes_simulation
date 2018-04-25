@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package mac_CSMA_simulation;
+package mac_CSMA1P_simulation;
 
+import mac_CSMA.NP_simulation.*;
 import mac_SlottedAloha_simulation.*;
 import common.TimeSeries_AWT;
 import common.chart;
@@ -23,14 +24,14 @@ public class Redes_simulacion {
 
         double velMaxCanal = 20 * Math.pow(10, 6),
                 lambda = 2,
-                tamPakt = 10 * Math.pow(10, 3);
+                tamPakt = 10* Math.pow(10, 3);
         int n = 100000;
-        int cant_lambda = 5000;
+        int cant_lambda = 50000;
         double paso = 10;
         int cantFuncXGraf = 2;
         int cant_datos_muestra = (int) ((1 / paso) * cant_lambda);
       //  double tau = 25.6 * Math.pow(10, -6);
-      double tau=tamPakt/(velMaxCanal*5);
+      double tau=5*Math.pow(10, -6);
 
         //int clients[] = {1,5,10,11,12,13,14,15,16,17,18,19,20};
         Object[][] dataThroughput = new Object[3][cant_datos_muestra * cantFuncXGraf];
@@ -48,14 +49,14 @@ public class Redes_simulacion {
             //  System.out.println("LAMBDA----" + lambda);
             simulacion csma = new simulacion(n, lambda, velMaxCanal, tamPakt, tau);
             csma.run();
-            lambda = 2*k;
+            lambda = k;
             dataThroughput[0][i] = csma.getReal_S();
             dataThroughput[1][i] = csma.getG();
-            dataThroughput[2][i] = "Valor real cant.";
+            dataThroughput[2][i] = "Valor real";
 
             dataThroughput[0][i + cant_datos_muestra] = csma.getTeoric_S();
             dataThroughput[1][i + cant_datos_muestra] = csma.getG();
-            dataThroughput[2][i + cant_datos_muestra] = "Valor teórico cant.";
+            dataThroughput[2][i + cant_datos_muestra] = "Valor teórico";
 //
 //            dataThroughput[0][i + cant_datos_muestra * 2] = csma.getTeoric_S() / 10;
 //            dataThroughput[1][i + cant_datos_muestra * 2] = csma.getG();
@@ -80,11 +81,14 @@ public class Redes_simulacion {
 //            dataTries[0][i + cant_datos_muestra] = csma.getTrials_Teoric();
 //            dataTries[1][i + cant_datos_muestra] = csma.getG();
 //            dataTries[2][i + cant_datos_muestra] = "Valor teórico";
-            System.out.println("G****** " + csma.getG());
-            System.out.println("REAL THROUGPUT********* " + csma.getReal_S());
-            System.out.println("TEOR THROUGPUT********* " + csma.getTeoric_S());
-            System.out.println("No. Intentos Real****** " + csma.getTrials_Real());
-            System.out.println("No. Intentos Teoric****** " + csma.getTrials_Teoric());
+//            System.out.println("G****** " + csma.getG());
+//            System.out.println("g*********"+csma.getG_chik());
+//            System.out.println("REAL THROUGPUT********* " + csma.getReal_S());
+//            System.out.println("TEOR THROUGPUT********* " + csma.getTeoric_S());
+//            System.out.println("No. Paquetes Succ****** " + csma.getCountSucc());
+//            System.out.println("Perdidos*******"+csma.getCountPerd());
+//            System.out.println("Colisionados*********"+csma.getCountColiss());
+//            System.out.println("No. Intentos Teoric****** " + csma.getTrials_Teoric());
         }
 
 //        for (int j = 0; j < dataTries.length; j++) {
