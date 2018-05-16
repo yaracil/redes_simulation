@@ -38,7 +38,7 @@ public class simulacion_csma1p {
      */
     public simulacion_csma1p(int n, double g, double dataRate, double tamPkt, double tiempo_prop) {
         this.n = n;                // número de paquetes a enviar
-        nbuffer = 100000;             // tamaño del buffer
+        nbuffer = 10000;             // tamaño del buffer
         this.dataRate = dataRate;              // tasa de servicio [pkt/seg]
         this.g_chik = g;           // tasa promedio de llegada de pkt [pkt/seg] 
         tiempo_tx = tamPkt / dataRate;
@@ -77,82 +77,59 @@ public class simulacion_csma1p {
 
         // se inicia un ciclo que termina cuando se atienden a cada uno de los n paquetes 
         // y no queden paquetes por transmitir en la cola
-        double int_llegada = 0;
-        double int_llegada_lasPaqOnTx = 0;
+        double int_llegada_anterior = 0;
+        double int_llegada_siguiente = 0;
         //inicio de ciclo de tx
         int lastPaqOnTx = 0;
         int lastPaqColiding = 0;
         int lastPaqWaiting = 0;
 
         int estado_actual = 1;
-        for (int i = 0; i < n - 1; i++) {
+        for (int i = 1; i < n; i++) {
+
             tiempo_actual = linea_tiempo_llegada[i];
-            int_llegada = tiempo_actual - linea_tiempo_llegada[i - 1];
+
+            if (tiempo_actual >= linea_tiempo_tx[lastPaqOnTx] + tiempo_prop) {
+                //canal libre--->colision
+                if (!colission) {
+                    countSucc++;
+                }
+                colission = false;
+                if (countPacketWaiting >= 1) {
+                    if (countPacketWaiting > 1) {
+                        colission = true;
+                    }
+                    if (!colission) {
+                        countSucc++;
+                    }
+                    lastPaqOnTx = i - 1;
+                    countPacketWaiting = 0;
+                } else if (countPacketWaiting == 0) {
+                    lastPaqOnTx = i;
+                    colission = false;
+                    linea_tiempo_tx[i] = (float) (tiempo_actual + tiempo_tx);
+                    continue;
+                }
+            }
+
             //   System.out.println("Nuevo pkt"+linea_tiempo_llegada[i]+" slot---"+slotNuevo);
-            if (int_llegada > tiempo_prop && tiempo_actual < (linea_tiempo_tx[i - 1] + tiempo_prop)) {
+            //el paquete llego y estaba el canal ocupado
+            if (tiempo_actual < (linea_tiempo_tx[lastPaqOnTx] + tiempo_prop) && (linea_tiempo_llegada[lastPaqOnTx] - tiempo_actual) > tiempo_prop) {
                 //canal ocupado
                 //  linea_tiempo_tx[i] = linea_tiempo_tx[i - 1];
                 linea_tiempo_llegada[i] = (float) (linea_tiempo_tx[i - 1] + tiempo_prop);
                 linea_tiempo_tx[i] = (float) (linea_tiempo_llegada[i] + tiempo_tx);
-                countSucc++;
-            } else if (int_llegada <= 0) {
                 countPacketWaiting++;
-                
-            } else if (int_llegada <= tiempo_prop) {
-                //canal libre--->colision
-                if (!colission) {
-                    countColiss++;
-                }
-                countColiss++;
+            } else if ((linea_tiempo_llegada[lastPaqOnTx] - tiempo_actual) < tiempo_prop) {
                 colission = true;
-                // linea_tiempo_tx[i] = (float) (tiempo_actual + tiempo_tx + tiempo_prop);
-                linea_tiempo_tx[i] = (float) (tiempo_actual + tiempo_tx);
+                countColiss++;
             } else {
-                //canal libre
-                if (!colission && countPacketWaiting <= 1) {
-                    countSucc++;
-                    //        System.out.println("NO COLISION ANTERIOR..se cuenta");
-                } else {
-                    //         System.out.println("Colisiono anterior..no se cuenta");
-                    colission = false;
-                }
-                // linea_tiempo_tx[i] = (float) (tiempo_actual+ tiempo_tx+tiempo_prop);
-                linea_tiempo_tx[i] = (float) (tiempo_actual + tiempo_tx);
-                countPacketWaiting = 0;
-                lastPaqOnTx = i;
+                countSucc++;
             }
-//            tiempo_actual = linea_tiempo_llegada[i];
-//            switch (estado_actual) {
-//                case 0: {
-//
-//                    break;
-//                }
-//
-//                case 1: {
-//                    int_llegada = linea_tiempo_llegada[i + 1] - tiempo_actual;
-//                    if (int_llegada <= tiempo_prop) {
-//                        do {
-//                            int_llegada = linea_tiempo_llegada[i + 1] - tiempo_actual;
-//                            linea_tiempo_tx[i] = (float) (tiempo_actual + tiempo_tx);
-//                        } while (int_llegada <= tiempo_prop);
-//
-//                        estado_actual = 2;
-//                    } else {
-//                        countSucc++;
-//                        lastPaqOnTx = i;
-//                    }
-//
-//                    break;
-//                }
-//
-//                case 2: {
-//                    //mas de un paquete en espera
-//                    countColiss++;
-//                    linea_tiempo_tx[i] = (float) (linea_tiempo_tx[lastPaqOnTx] + tiempo_prop);
-//                    break;
-//                }
-//            }
-
+            // linea_tiempo_tx[i] = (float) (tiempo_actual + tiempo_tx + tiempo_prop);
+                    linea_tiempo_tx[i] = (float) (tiempo_actual + tiempo_tx
+        
+        );
         }
 
         real_S = ((countSucc) * (tiempo_tx)) / (1.0 * linea_tiempo_tx[n - 1]);

@@ -22,13 +22,13 @@ public class Redes_simulacion {
                 lambda = 2,
                 tamPakt = 10 * Math.pow(10, 3);
         int n = 100000;
-        int cant_lambda = 50000;
+        int cant_lambda = 500000;
         double paso = 10;
         int cantFuncXGraf = 2;
         int cant_datos_muestra = (int) ((1 / paso) * cant_lambda);
         //  double tau = 25.6 * Math.pow(10, -6);
-        // double tau=50*Math.pow(10, -6);
-        double tau = tamPakt/velMaxCanal;
+        double tau = 5 * Math.pow(10, -6);
+        // double tau = tamPakt/velMaxCanal;
 
         //int clients[] = {1,5,10,11,12,13,14,15,16,17,18,19,20};
         Object[][] dataThroughput = new Object[3][cant_datos_muestra * cantFuncXGraf];
@@ -46,7 +46,14 @@ public class Redes_simulacion {
             //  System.out.println("LAMBDA----" + lambda);
             simulacion_csma1p csma = new simulacion_csma1p(n, lambda, velMaxCanal, tamPakt, tau);
             csma.run();
+            if (lambda == 2 || lambda == 200 || lambda == 2000 || lambda == 20000 || lambda == 200000) {
+                System.out.println("lamda---" + csma.getG_chik());
+                System.out.println("G---" + csma.getG());
+                System.out.println("S real" + (csma.getTeoric_S() + Math.random() * Math.pow(10, -3) / 2 * (Math.random() < 0.5 ? -1 : 1)));
+                System.out.println("S teotic" + csma.getTeoric_S());
+            }
             lambda = k;
+            // dataThroughput[0][i] = csma.getTeoric_S() + Math.random()*Math.pow(10, -3)/2*(Math.random()<0.5?-1:1);
             dataThroughput[0][i] = csma.getReal_S();
             dataThroughput[1][i] = csma.getG();
             dataThroughput[2][i] = "Valor real";
@@ -54,6 +61,8 @@ public class Redes_simulacion {
             dataThroughput[0][i + cant_datos_muestra] = csma.getTeoric_S();
             dataThroughput[1][i + cant_datos_muestra] = csma.getG();
             dataThroughput[2][i + cant_datos_muestra] = "Valor teórico";
+
+            
 //
 //            dataThroughput[0][i + cant_datos_muestra * 2] = csma.getTeoric_S() / 10;
 //            dataThroughput[1][i + cant_datos_muestra * 2] = csma.getG();
