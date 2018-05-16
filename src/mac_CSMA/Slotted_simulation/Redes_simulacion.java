@@ -3,9 +3,8 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package mac_CSMA.Slottedd;
+package mac_CSMA.Slotted_simulation;
 
-import mac_CSMA.Slotted.*;
 import common.XYLineChart_AWT;
 import common.chart;
 
