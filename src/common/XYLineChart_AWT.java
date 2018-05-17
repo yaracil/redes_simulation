@@ -13,7 +13,6 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.ui.ApplicationFrame;
-import org.jfree.ui.RefineryUtilities;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.plot.PlotOrientation;
@@ -26,8 +25,8 @@ public class XYLineChart_AWT extends ApplicationFrame {
         super(applicationTitle);
         JFreeChart xylineChart = ChartFactory.createXYLineChart(
                 chartTitle,
-                "Category",
-                "Score",
+                "G",
+                "Throughput",
                 createDataset(Data, ejeX, ejeY),
                 PlotOrientation.VERTICAL,
                 true, true, false);
@@ -36,14 +35,14 @@ public class XYLineChart_AWT extends ApplicationFrame {
         chartPanel.setPreferredSize(new java.awt.Dimension(560, 367));
         final XYPlot plot = xylineChart.getXYPlot();
 
-        XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
-//        renderer.setSeriesPaint(0, Color.RED);
-//        renderer.setSeriesPaint(1, Color.GREEN);
-        // renderer.setSeriesPaint(2, Color.YELLOW);
-        renderer.setSeriesStroke(0, new BasicStroke(0.0f));
-        renderer.setSeriesStroke(1, new BasicStroke(0.0f));
-        // renderer.setSeriesStroke(2, new BasicStroke(2.0f));
-        plot.setRenderer(renderer);
+//        XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
+//        renderer.setSeriesPaint(0, Color.GREEN);
+//        renderer.setSeriesPaint(1, Color.RED);
+//        // renderer.setSeriesPaint(2, Color.YELLOW);
+//        renderer.setSeriesStroke(0, new BasicStroke(0.0f));
+//        renderer.setSeriesStroke(1, new BasicStroke(2.0f));
+//        // renderer.setSeriesStroke(2, new BasicStroke(2.0f));
+//        plot.setRenderer(renderer);
         setContentPane(chartPanel);
     }
 
@@ -60,10 +59,10 @@ public class XYLineChart_AWT extends ApplicationFrame {
                 aux.add((Double) Data[1][i], (Double) Data[0][i]);
                 i++;
             }
-            System.out.println(nombreSerie);
+          //  System.out.println(nombreSerie);
             dataset.addSeries(aux);
-            System.out.println(Data[0].length);
-            System.out.println(i);
+          //  System.out.println(Data[0].length);
+          //  System.out.println(i);
         } while (i < Data[0].length);
         return dataset;
     }
