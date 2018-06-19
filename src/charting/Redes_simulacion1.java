@@ -3,120 +3,166 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package mac_SlottedAloha_simulation;
+package charting;
 
+import mac_SlottedAloha_simulation.*;
 import common.TimeSeries_AWT;
+import common.XYLineChart_AWT;
 import common.chart;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jfree.ui.RefineryUtilities;
 
 /**
  *
  * @author maestria
  */
-public class Redes_simulacion {
+public class Redes_simulacion1 {
 
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    public static void main(String[] arg) {
 
-        double velMaxCanal = 20 * Math.pow(10, 6),
-                lambda = 1,
-                tamPakt = 10 * Math.pow(10, 3);
-        int n = 100000;
-        int cant_lambda = 6000;
-        double paso = 10;
-        int cantFuncXGraf = 4;
-        int cant_datos_muestra = (int) ((1 / paso) * cant_lambda);
+        File archivo = null;
+        File file = null;
+        File file2 = null;
 
-        //int clients[] = {1,5,10,11,12,13,14,15,16,17,18,19,20};
-        Object[][] dataThroughput = new Object[3][cant_datos_muestra * cantFuncXGraf];
-        Object[][] dataTries = new Object[3][cant_datos_muestra * 2];
-        Object[][] dataDelay = new Object[3][cant_datos_muestra * 2];
+        FileReader fr = null;
+        FileReader fr2 = null;
+        FileReader fr3 = null;
 
-        int i = 0;
-        //t, i2, t2;
-        for (int k = 10; k <= cant_lambda; k += paso, i++) {
+        BufferedReader br = null;
+        BufferedReader br2 = null;
+        BufferedReader br3 = null;
 
-            //            t = i + cant_datos_muestra;
-            //            i2 = i + cant_datos_muestra * 2;
-            //            t2 = i + cant_datos_muestra * 3;
-            //  public simulacion(int n, double g, double dataRate, double tamPkt) 
-            //  System.out.println("LAMBDA----" + lambda);
-            simulacion slotted_aloha = new simulacion(n, lambda, velMaxCanal, tamPakt);
-            slotted_aloha.run();
-            lambda = k;
-            dataThroughput[0][i] = slotted_aloha.getReal_S();
-            dataThroughput[1][i] = slotted_aloha.getG();
-            dataThroughput[2][i] = "Valor real cant. infinita de usuarios";
+       // int cantMuestrasxSeg = 60;
+        int cantPntos = 9;
+        Object[][] throughput = new Object[3][5 * cantPntos];
+        Object[][] energy = new Object[3][cantPntos];
+        Object[][] Delay = new Object[3][cantPntos];
+        Object[][] PacketDeliveryRatio = new Object[3][cantPntos];
 
-            dataThroughput[0][i + cant_datos_muestra] = slotted_aloha.getTeoric_S();
-            dataThroughput[1][i + cant_datos_muestra] = slotted_aloha.getG();
-            dataThroughput[2][i + cant_datos_muestra] = "Valor teórico cant. infinita de usuarios";
+        try {
 
-            dataThroughput[0][i + cant_datos_muestra * 2] = slotted_aloha.getTeoric_S() / 10;
-            dataThroughput[1][i + cant_datos_muestra * 2] = slotted_aloha.getG();
-            dataThroughput[2][i + cant_datos_muestra * 2] = "Valor teóric. para 10 usuarios";
+            // Apertura del fichero y creacion de BufferedReader para poder
+            // hacer una lectura comoda (disponer del metodo readLine()).            
+            for (int i = 0; i < cantPntos; i++) {
+                archivo = new File("/home/yoe/workspace/bake/source/ns-3.28/testing_8/simulation" + i);
+                fr = new FileReader(archivo);
+                br = new BufferedReader(fr);
 
-            dataThroughput[0][i + cant_datos_muestra * 3] = slotted_aloha.getTeoric_S() / 100;
-            dataThroughput[1][i + cant_datos_muestra * 3] = slotted_aloha.getG();
-            dataThroughput[2][i + cant_datos_muestra * 3] = "Valor teóric. para 100 usuarios";
+                file = new File("/home/yoe/workspace/bake/source/ns-3.28/testing_8/simulation" + i + "_energy");
+                fr2 = new FileReader(file);
+                br2 = new BufferedReader(fr2);
 
-            dataDelay[0][i] = (1 + 10 / slotted_aloha.getTeoric_S() - 1 / lambda);
-            dataDelay[1][i] = slotted_aloha.getG();
-            dataDelay[2][i] = "Valor teóric. para 10 usuarios";
+                file2 = new File("/home/yoe/workspace/bake/source/ns-3.28/testing_8/simulation" + i + "_monitor");
+                fr3 = new FileReader(file2);
+                br3 = new BufferedReader(fr3);
 
-            dataDelay[0][i + cant_datos_muestra] = (1 + 100 / slotted_aloha.getTeoric_S() - 1 / lambda);
-            dataDelay[1][i + cant_datos_muestra] = slotted_aloha.getG();
-            dataDelay[2][i + cant_datos_muestra] = "Valor teóric. para 100 usuarios";
+                //1er archivo                
+                String aux1;
+                br2.readLine();//dejar pasar primera linea
+                double energyAve = Double.parseDouble(br2.readLine().split(",")[1]);
 
-            dataTries[0][i] = slotted_aloha.getTrials_Real();
-            dataTries[1][i] = slotted_aloha.getG();
-            dataTries[2][i] = "Valor real";
+                //2do archivo
+                String aux2;
+                br.readLine();//dejar pasar primera linea
 
-            dataTries[0][i + cant_datos_muestra] = slotted_aloha.getTrials_Teoric();
-            dataTries[1][i + cant_datos_muestra] = slotted_aloha.getG();
-            dataTries[2][i + cant_datos_muestra] = "Valor teórico";
+                //3do archivo
+                String[] aux3;
+                br3.readLine();//dejar pasar primera linea
+                aux3 = br3.readLine().split(",");
 
-            System.out.println("G****** " + slotted_aloha.getG());
-            System.out.println("REAL THROUGPUT********* " + slotted_aloha.getReal_S());
-            System.out.println("TEOR THROUGPUT********* " + slotted_aloha.getTeoric_S());
-            System.out.println("No. Intentos Real****** " + slotted_aloha.getTrials_Real());
-            System.out.println("No. Intentos Teoric****** " + slotted_aloha.getTrials_Teoric());
+                String[] linea;
+
+                linea = br.readLine().split(",");
+                double ave = Integer.parseInt(linea[1]);
+                String numberNodes = linea[3];
+                String tiempoPausa = linea[6];
+
+                while ((aux1 = br2.readLine()) != null && ((aux2 = br.readLine()) != null)) {
+                    //1ero
+                    energyAve += Double.parseDouble(aux1.split(",")[1]);
+
+                    //2do
+                    linea = aux2.split(",");
+                    ave += Double.parseDouble(linea[1]);
+                }
+
+                System.out.println("CantNodos " + numberNodes);
+                System.out.println("PauseTime " + tiempoPausa);
+                //1ro
+                energy[0][i] = energyAve;
+                energy[1][i] = Double.parseDouble(numberNodes + "." + Integer.parseInt(tiempoPausa));
+                energy[2][i] = "AODV_PURE";
+
+                //2do
+                throughput[0][i] = ave;
+                throughput[1][i] = Double.parseDouble(numberNodes + "." + Integer.parseInt(tiempoPausa));
+                throughput[2][i] = "AODV_PURE_tracing";
+
+                //3do
+                throughput[0][i + cantPntos] = Double.parseDouble(aux3[0]);
+                throughput[1][i + cantPntos] = Double.parseDouble(numberNodes + "." + Integer.parseInt(tiempoPausa));
+                throughput[2][i + cantPntos] = "AODV_PURE_monitor";
+                
+                throughput[0][i + 2*cantPntos] = Double.parseDouble(aux3[1]);
+                throughput[1][i + 2*cantPntos] = Double.parseDouble(numberNodes + "." + Integer.parseInt(tiempoPausa));
+                throughput[2][i + 2*cantPntos] = "AODV_PURE_monitor_2";
+                
+                throughput[0][i + 3*cantPntos] = Double.parseDouble(aux3[2]);
+                throughput[1][i + 3*cantPntos] = Double.parseDouble(numberNodes + "." + Integer.parseInt(tiempoPausa));
+                throughput[2][i + 3*cantPntos] = "AODV_PURE_monitor_3";
+                
+                throughput[0][i + 4*cantPntos] = Double.parseDouble(aux3[7])*512/1024;
+                throughput[1][i + 4*cantPntos] = Double.parseDouble(numberNodes + "." + Integer.parseInt(tiempoPausa));
+                throughput[2][i + 4*cantPntos] = "AODV_PURE_monitor_4";
+
+                Delay[0][i] = Double.parseDouble(aux3[3]);
+                Delay[1][i] = Double.parseDouble(numberNodes + "." + Integer.parseInt(tiempoPausa));
+                Delay[2][i] = "AODV_PURE_monitor";
+
+                PacketDeliveryRatio[0][i] = Double.parseDouble(aux3[5]);
+                PacketDeliveryRatio[1][i] = Double.parseDouble(numberNodes + "." + Integer.parseInt(tiempoPausa));
+                PacketDeliveryRatio[2][i] = "AODV_PURE_monitor";
+
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            // En el finally cerramos el fichero, para asegurarnos
+            // que se cierra tanto si todo va bien como si salta
+            // una excepcion.
+            try {
+                if (null != fr) {
+                    fr.close();
+                }
+            } catch (Exception e2) {
+                e2.printStackTrace();
+            }
         }
 
-        for (int j = 0; j < dataTries.length; j++) {
-            Object[] dataTry = dataTries[j];
-
-        }
-        showChartThroughput(dataThroughput);
-        showChartTrails(dataTries);
-        showChartDelays(dataDelay);
+        showChart(throughput,"Parameters","Throughput");
+        showChart(energy,"Parameters","Energy");
+        showChart(PacketDeliveryRatio,"Parameters","PacketDeliveryRatio");
+        showChart(Delay,"Parameters","Delay");
 
     }
 
-    static void showChartThroughput(Object data[][]) {
+    static void showChart(Object data[][], String X, String Y) {
         // Creando gráficas
 
-        chart chart = new chart(data, "G", "Throughput");
-        chart.setVisible(true);
-    }
-
-    static void showChartTrails(Object data[][]) {
-        // Creando gráficas
-
-        chart chart = new chart(data, "G", "Número de intentos");
-        chart.setVisible(true);
-    }
-
-    static void showChartDelays(Object data[][]) {
-        // Creando gráficas
-//
-//        TimeSeries_AWT chart = new chart(data, "G", "Delay");
+//        XYLineChart_AWT chart = new XYLineChart_AWT("Char", "", data, "Throughput", "Parameters");
+//        // chart chart = new chart(data, "G", "Throughput");
 //        chart.setVisible(true);
-
-        chart chart = new chart(data, "G", "Delay");
+        chart chart = new chart(data, X, Y);
         chart.setVisible(true);
     }
-
 }
