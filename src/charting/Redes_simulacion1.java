@@ -31,106 +31,87 @@ public class Redes_simulacion1 {
 
         File archivo = null;
         File file = null;
-        File file2 = null;
+        File file_withEnhanc = null;
 
         FileReader fr = null;
         FileReader fr2 = null;
-        FileReader fr3 = null;
+        FileReader fr_withEnhanc = null;
 
         BufferedReader br = null;
         BufferedReader br2 = null;
-        BufferedReader br3 = null;
+        BufferedReader br_withEnhanc = null;
 
-       // int cantMuestrasxSeg = 60;
-        int cantPntos = 9;
-        Object[][] throughput = new Object[3][5 * cantPntos];
-        Object[][] energy = new Object[3][cantPntos];
-        Object[][] Delay = new Object[3][cantPntos];
-        Object[][] PacketDeliveryRatio = new Object[3][cantPntos];
+        // int cantMuestrasxSeg = 60;
+        int cantPntos = 5;
+        int cantGraf = 2;
+        Object[][] throughput = new Object[3][cantGraf * cantPntos];
+        Object[][] energy = new Object[3][cantGraf * cantPntos];
+        Object[][] Delay = new Object[3][cantGraf * cantPntos];
+        Object[][] PacketDeliveryRatio = new Object[3][cantGraf * cantPntos];
 
         try {
 
             // Apertura del fichero y creacion de BufferedReader para poder
             // hacer una lectura comoda (disponer del metodo readLine()).            
             for (int i = 0; i < cantPntos; i++) {
-                archivo = new File("/home/yoe/workspace/bake/source/ns-3.28/testing_8/simulation" + i);
+                archivo = new File("/home/claudia/workspace/bake/source/ns-3.28/test_1/simulation" + i + "_monitor");
                 fr = new FileReader(archivo);
                 br = new BufferedReader(fr);
 
-                file = new File("/home/yoe/workspace/bake/source/ns-3.28/testing_8/simulation" + i + "_energy");
-                fr2 = new FileReader(file);
-                br2 = new BufferedReader(fr2);
-
-                file2 = new File("/home/yoe/workspace/bake/source/ns-3.28/testing_8/simulation" + i + "_monitor");
-                fr3 = new FileReader(file2);
-                br3 = new BufferedReader(fr3);
+//                file = new File("/home/claudia/workspace/bake/source/ns-3.28/test" + i + "_energy");
+//                fr2 = new FileReader(file);
+//                br2 = new BufferedReader(fr2);
+                file_withEnhanc = new File("/home/claudia/workspace/bake/source/ns-3.28/test_60/simulation" + i + "_monitor");
+                fr_withEnhanc = new FileReader(file_withEnhanc);
+                br_withEnhanc = new BufferedReader(fr_withEnhanc);
 
                 //1er archivo                
-                String aux1;
-                br2.readLine();//dejar pasar primera linea
-                double energyAve = Double.parseDouble(br2.readLine().split(",")[1]);
+                String[] aux1;
+                br.readLine();
+                aux1 = br.readLine().split(",");
 
                 //2do archivo
-                String aux2;
-                br.readLine();//dejar pasar primera linea
+                String[] aux2;
+                br_withEnhanc.readLine();//dejar pasar primera linea               
+                aux2 = br_withEnhanc.readLine().split(",");
 
-                //3do archivo
-                String[] aux3;
-                br3.readLine();//dejar pasar primera linea
-                aux3 = br3.readLine().split(",");
-
-                String[] linea;
-
-                linea = br.readLine().split(",");
-                double ave = Integer.parseInt(linea[1]);
-                String numberNodes = linea[3];
-                String tiempoPausa = linea[6];
-
-                while ((aux1 = br2.readLine()) != null && ((aux2 = br.readLine()) != null)) {
-                    //1ero
-                    energyAve += Double.parseDouble(aux1.split(",")[1]);
-
-                    //2do
-                    linea = aux2.split(",");
-                    ave += Double.parseDouble(linea[1]);
-                }
-
-                System.out.println("CantNodos " + numberNodes);
-                System.out.println("PauseTime " + tiempoPausa);
+//                System.out.println("CantNodos " + numberNodes);
+//                System.out.println("PauseTime " + tiempoPausa);
                 //1ro
-                energy[0][i] = energyAve;
-                energy[1][i] = Double.parseDouble(numberNodes + "." + Integer.parseInt(tiempoPausa));
+                energy[0][i] = Double.parseDouble(aux1[3]);
+                energy[1][i] = i;
                 energy[2][i] = "AODV_PURE";
 
+                energy[0][i + cantPntos] = Double.parseDouble(aux2[3]);
+                energy[1][i + cantPntos] = i;
+                energy[2][i + cantPntos] = "AODV_EnrgyEnhance";
+
                 //2do
-                throughput[0][i] = ave;
-                throughput[1][i] = Double.parseDouble(numberNodes + "." + Integer.parseInt(tiempoPausa));
-                throughput[2][i] = "AODV_PURE_tracing";
+                throughput[0][i] = Double.parseDouble(aux1[0]);
+                throughput[1][i] = i;
+                throughput[2][i] = "AODV_PURE";
 
-                //3do
-                throughput[0][i + cantPntos] = Double.parseDouble(aux3[0]);
-                throughput[1][i + cantPntos] = Double.parseDouble(numberNodes + "." + Integer.parseInt(tiempoPausa));
-                throughput[2][i + cantPntos] = "AODV_PURE_monitor";
-                
-                throughput[0][i + 2*cantPntos] = Double.parseDouble(aux3[1]);
-                throughput[1][i + 2*cantPntos] = Double.parseDouble(numberNodes + "." + Integer.parseInt(tiempoPausa));
-                throughput[2][i + 2*cantPntos] = "AODV_PURE_monitor_2";
-                
-                throughput[0][i + 3*cantPntos] = Double.parseDouble(aux3[2]);
-                throughput[1][i + 3*cantPntos] = Double.parseDouble(numberNodes + "." + Integer.parseInt(tiempoPausa));
-                throughput[2][i + 3*cantPntos] = "AODV_PURE_monitor_3";
-                
-                throughput[0][i + 4*cantPntos] = Double.parseDouble(aux3[7])*512/1024;
-                throughput[1][i + 4*cantPntos] = Double.parseDouble(numberNodes + "." + Integer.parseInt(tiempoPausa));
-                throughput[2][i + 4*cantPntos] = "AODV_PURE_monitor_4";
+                throughput[0][i + cantPntos] = Double.parseDouble(aux2[0]);
+                throughput[1][i + cantPntos] = i;
+                throughput[2][i + cantPntos] = "AODV_EnrgyEnhance";
 
-                Delay[0][i] = Double.parseDouble(aux3[3]);
-                Delay[1][i] = Double.parseDouble(numberNodes + "." + Integer.parseInt(tiempoPausa));
-                Delay[2][i] = "AODV_PURE_monitor";
+                //3ro
+                Delay[0][i] = Double.parseDouble(aux1[1]);
+                Delay[1][i] = i;
+                Delay[2][i] = "AODV_PURE";
 
-                PacketDeliveryRatio[0][i] = Double.parseDouble(aux3[5]);
-                PacketDeliveryRatio[1][i] = Double.parseDouble(numberNodes + "." + Integer.parseInt(tiempoPausa));
-                PacketDeliveryRatio[2][i] = "AODV_PURE_monitor";
+                Delay[0][i + cantPntos] = Double.parseDouble(aux2[1]);
+                Delay[1][i + cantPntos] = i;
+                Delay[2][i + cantPntos] = "AODV_PURE_monitor";
+
+                //4to
+                PacketDeliveryRatio[0][i] = Double.parseDouble(aux1[2]);
+                PacketDeliveryRatio[1][i] = i;
+                PacketDeliveryRatio[2][i] = "AODV_PURE";
+
+                PacketDeliveryRatio[0][i + cantPntos] = Double.parseDouble(aux2[2]);
+                PacketDeliveryRatio[1][i + cantPntos] = i;
+                PacketDeliveryRatio[2][i + cantPntos] = "AODV_PURE_monitor";
 
             }
 
@@ -149,10 +130,10 @@ public class Redes_simulacion1 {
             }
         }
 
-        showChart(throughput,"Parameters","Throughput");
-        showChart(energy,"Parameters","Energy");
-        showChart(PacketDeliveryRatio,"Parameters","PacketDeliveryRatio");
-        showChart(Delay,"Parameters","Delay");
+        showChart(throughput, "Parameters", "Throughput");
+        showChart(energy, "Parameters", "Energy");
+        showChart(PacketDeliveryRatio, "Parameters", "PacketDeliveryRatio");
+        showChart(Delay, "Parameters", "Delay");
 
     }
 
